@@ -1,9 +1,11 @@
+from typing import Tuple
+
 import numpy as np
 
 from .transform import FT
 
 
-def get_pcd_in_local_frame(pcd: np.ndarray):
+def get_pcd_in_local_frame(pcd: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Takes a pointcloud in one coordinate frame and transforms that
     pointcloud to a local coordinate frame with origin at the centroid
     of the pointcloud.

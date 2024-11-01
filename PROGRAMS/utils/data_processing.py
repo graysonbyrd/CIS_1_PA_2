@@ -9,11 +9,10 @@ dataset_prefixes = [
     "pa2-debug-d-",
     "pa2-debug-e-",
     "pa2-debug-f-",
-    "pa2-debug-g-",
+    "pa2-unknown-g-",
     "pa2-unknown-h-",
     "pa2-unknown-i-",
     "pa2-unknown-j-",
-    "pa2-unknown-k-",
 ]
 
 
@@ -149,7 +148,7 @@ def parse_ct_fiducials(path: str) -> np.ndarray:
     return np.array(b)
 
 
-def parse_em_fiductials(path: str) -> List[np.ndarray]:
+def parse_em_fiducials(path: str) -> List[np.ndarray]:
     """Parses an em-fiducials.txt file according to specifications
     in the homework description."""
     assert "em-fiducials" in path, "Wrong file path."
@@ -190,11 +189,28 @@ def parse_em_nav(path: str) -> List[np.ndarray]:
         frames.append(np.array(G))
     return frames
 
+def parse_output_2(path: str) -> List[np.ndarray]:
+    """Parses an debug output file for pa2 according to specifications
+    in the homework description."""
+    assert "output2" in path.lower(), "Wrong file path."
+    with open(path, "r") as file:
+        data = file.readlines()
+    pointer_points_ct = list()
+    # get the number of fiducials
+    for idx, line in enumerate(data[1:]):
+        data[idx] = line.replace(",", "")
+        temp = [float(x) for x in data[idx].split(" ") if x != ""]
+
+        pointer_points_ct.append(np.expand_dims(np.array(temp), axis=0))
+    return pointer_points_ct
+
 
 if __name__ == "__main__":
     path = "/Users/byrdgb1/Desktop/Projects/CIS_1/CIS_1_PA_2/DATA/pa2-debug-a-ct-fiducials.txt"
     data = parse_ct_fiducials(path)
     path = "/Users/byrdgb1/Desktop/Projects/CIS_1/CIS_1_PA_2/DATA/pa2-debug-e-em-fiducialss.txt"
-    data = parse_em_fiductials(path)
-    path = "/Users/byrdgb1/Desktop/Projects/CIS_1/CIS_1_PA_2/DATA/pa2-debug-e-EM-nav.txt"
+    data = parse_em_fiducials(path)
+    path = (
+        "/Users/byrdgb1/Desktop/Projects/CIS_1/CIS_1_PA_2/DATA/pa2-debug-e-EM-nav.txt"
+    )
     data = parse_em_nav(path)

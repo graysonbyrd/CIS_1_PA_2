@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from PROGRAMS.main_PA1 import main
+from main_PA1 import main
 from tests.test_utils import TEST_DIR
 from utils.data_processing import dataset_prefixes
 

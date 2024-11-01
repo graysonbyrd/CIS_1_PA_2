@@ -11,7 +11,17 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--dataset_prefix", "pa2-debug-a-"
+                "--dataset_prefix", "pa2-debug-c-"
+            ]
+        },
+        {
+            "name": "Debug Full Run",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--full_run"
             ]
         }
     ]

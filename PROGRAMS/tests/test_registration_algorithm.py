@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from PROGRAMS.main_PA1 import compute_C_i_expected
+from main_PA1 import compute_C_i_expected
 from scipy.spatial.transform import Rotation as R
 from tests.test_utils import TEST_DIR, compute_avg_mse_between_two_pcds
 from utils.data_processing import dataset_prefixes, parse_calreadings
