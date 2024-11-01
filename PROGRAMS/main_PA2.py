@@ -231,12 +231,8 @@ def write_3d_point_to_file(pt: np.ndarray, file) -> None:
     file.write(f"{x},\t{y},\t{z}\n")
 
 
-def main(dataset_prefix: str):
-    """The main script for programming assignment # 1. Specify the prefix
-    of the data you wish to run for (e.g. pa1-debug-a-)."""
-    validate_dataset_prefix(dataset_prefix)  # check if dataset prefix valid
+def get_data_paths(dataset_prefix: str) -> List[str]:
     dataset_folder = os.path.join(CUR_DIR, "..", "DATA")
-    output_folder = os.path.join(CUR_DIR, "..", "OUTPUT")
     calbody_path = os.path.join(dataset_folder, f"{dataset_prefix}calbody.txt")
     calreadings_path = os.path.join(dataset_folder, f"{dataset_prefix}calreadings.txt")
     empivot_path = os.path.join(dataset_folder, f"{dataset_prefix}empivot.txt")
@@ -248,6 +244,15 @@ def main(dataset_prefix: str):
     )
     em_nav_path = os.path.join(dataset_folder, f"{dataset_prefix}EM-nav.txt")
     output2_path = os.path.join(dataset_folder, f"{dataset_prefix}output2.txt")
+    return calbody_path, calreadings_path, empivot_path, em_fiducials_path, ct_fiducials_path, em_nav_path, output2_path
+
+def main(dataset_prefix: str):
+    """The main script for programming assignment #2. Specify the prefix
+    of the data you wish to run for (e.g. pa1-debug-a-)."""
+    validate_dataset_prefix(dataset_prefix)  # check if dataset prefix valid
+    calbody_path, calreadings_path, empivot_path, em_fiducials_path, ct_fiducials_path, em_nav_path, output2_path = get_data_paths()
+
+    # high level approach starts here starts here 
     C_i_expected_frames = compute_C_i_expected(calbody_path, calreadings_path)
     degree = 5
     coeffs, min, max = get_distortion_calibration_bernstein_polynomial_coeffs(
@@ -270,7 +275,6 @@ def main(dataset_prefix: str):
     output_2_frames = parse_output_2(output2_path)
     # calculate the error between debug output frames and predicted output frames
     compute_debug_output_error(p_tips_in_ct_frame, output_2_frames)
-    what = "yes"
 
 
 def full_run():

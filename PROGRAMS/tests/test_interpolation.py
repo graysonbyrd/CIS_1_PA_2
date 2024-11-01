@@ -15,7 +15,7 @@ from utils.interpolation import (
     apply_distortion_correction_bernstein,
     get_distortion_correction_coeffs_bernstein_3d
 )
-from main import validate_dataset_prefix, compute_C_i_expected
+from PROGRAMS.main_PA2 import validate_dataset_prefix, compute_C_i_expected
 
 
 
