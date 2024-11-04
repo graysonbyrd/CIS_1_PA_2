@@ -1,0 +1,2 @@
+MSE between debug output and predicted: 0.0034411064022305204
+MAE between debug output and predicted: 0.04973015458200081

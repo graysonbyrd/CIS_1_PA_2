@@ -1,2 +1,0 @@
-Mean squared error between points: 0.08419781857664574
-Maximum absolute error in point coordinate: 0.5 with coord: (220.27, 230.77, 226.21)

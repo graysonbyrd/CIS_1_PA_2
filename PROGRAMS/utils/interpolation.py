@@ -1,6 +1,3 @@
-import pdb
-from typing import Dict, List
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import lstsq
@@ -52,7 +49,18 @@ def bernstein_poly(n, i, x):
     return comb(n, i) * (x**i) * ((1 - x) ** (n - i))
 
 
-def construct_approximation_matrix(pcd_norm: np.ndarray, degree: int):
+def construct_approximation_matrix(pcd_norm: np.ndarray, degree: int) -> np.ndarray:
+    """Computes the approximation matrix, A, for the Bernstein
+    Polynomial Interpolation Least Squares Calculation.
+
+    Args:
+        pcd_norm (np.ndarray): Normalized distorted point cloud
+        degree (int): degree of the Bernstein Polynomial
+
+    Returns:
+        A (np.ndarray): the approximation matrix, A, for the Bernstein
+        Polynomial Interpolation Least Squares calculation
+    """
     # ensure the point cloud is already normalized
     assert np.min(pcd_norm) >= 0 and np.min(pcd_norm) < 1
     assert np.max(pcd_norm) <= 1 and np.max(pcd_norm) > 0
@@ -82,7 +90,26 @@ def get_distortion_correction_coeffs_bernstein_3d(
     degree: int,
     min: np.ndarray,
     max: np.ndarray,
-):
+) -> np.ndarray:
+    """Computes the coefficients for the Bernstein Polynomial
+    that interpolates to calibrate for the distortion in measured
+    points.
+
+    Args:
+        gt_pts (np.ndarray): ground truth point cloud points without
+            distortion
+        measured_pts (np.ndarray): measured point cloud points with
+            distortion
+        degree (int): the degree of the Bernstein polynomial
+        min (np.ndarray): the minimum value for the denormalization in the
+            x, y, and z axis
+        max (np.ndarray): the maximum value for the denormalization in the
+            x, y, and z axis
+
+    coeffs (np.ndarray): the coefficients of the estimated Bernstein
+        polynomial that can be used to correct for the distortion in the
+        measured point cloud frame
+    """
     # normalize the ground truth points
     gt_pts_norm = normalize_pcd(gt_pts, min, max)
     measured_pts_norm = normalize_pcd(measured_pts, min, max)
@@ -97,7 +124,24 @@ def apply_distortion_correction_bernstein(
     degree: int,
     min: np.ndarray,
     max: np.ndarray,
-):
+) -> np.ndarray:
+    """Takes measured points and parameters of a Bernstein polynomial
+    and rectified those measured points by removing distortion.
+
+    Args:
+        measured_points (np.ndarray): measured, distorted point cloud
+        coeffs (np.ndarray): the coefficients of the Bernstein
+            polynomial for correcting the distortion
+        degree (int): the degree of the Bernstein polynomial
+        min (np.ndarray): the minimum value for the denormalization in the
+            x, y, and z axis
+        max (np.ndarray): the maximum value for the denormalization in the
+            x, y, and z axis
+
+    Returns:
+        rectified_points (np.ndarray): the measured points corrected for
+            the distortion in the measured points tracker
+    """
     assert measured_points.shape[1] == 3
     assert (degree + 1) ** 3 == coeffs.shape[0]
     measured_points_norm = normalize_pcd(measured_points, min, max)
@@ -182,3 +226,4 @@ def visual_sanity_check_3d_bernstein_approximation():
 
 if __name__ == "__main__":
     visual_sanity_check_3d_bernstein_approximation()
+

@@ -10,8 +10,9 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
+            "cwd": "/Users/byrdgb1/Desktop/Projects/CIS_1/CIS_1_PA_2/PROGRAMS",
             "args": [
-                "--dataset_prefix", "pa2-debug-c-"
+                "--dataset_prefix", "pa2-debug-a-"
             ]
         },
         {
