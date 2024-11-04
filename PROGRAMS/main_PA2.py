@@ -93,7 +93,7 @@ def get_distortion_calibration_bernstein_polynomial_coeffs(
     global_min = np.min(np.concatenate([min_expected, min_measured], axis=0), axis=0)
     global_max = np.max(np.concatenate([max_expected, max_measured], axis=0), axis=0)
     # apply 5% padding on either side of the global min and global max
-    pad_size = (global_max - global_min) * 0.05
+    pad_size = (global_max - global_min) * 0.1
     global_min -= pad_size
     global_max += pad_size
     # get the coeffs of the bernstein polynomial that approximates the
@@ -109,7 +109,7 @@ def get_distortion_calibration_bernstein_polynomial_coeffs(
 
 
 # function for question 3
-def compute_p_tip_in_pointer_frame(
+def compute_p_tip_in_reference_pointer_frame(
     empivot_file_path: str,
     coeffs: np.ndarray,
     degree: int,
@@ -136,25 +136,34 @@ def compute_p_tip_in_pointer_frame(
             pcd, coeffs, degree, min, max
         )
         rectified_pcd_frames.append(rectified_pcd)
-    p_tip, p_dimple = pivot_calibration(rectified_pcd_frames)
-    return p_tip
+    p_tip, p_dimple, reference_ptr_pcd = pivot_calibration(rectified_pcd_frames)
+    return p_tip, reference_ptr_pcd
 
 
 def compute_p_tip_in_tracker_frame(
-    pointer_markers_in_tracker_frame: np.ndarray, p_tip_in_pointer_frame: np.ndarray
+    reference_ptr_pcd: np.ndarray, pointer_markers_in_tracker_frame: np.ndarray, p_tip_in_reference_pointer_frame: np.ndarray
 ):
     pointer_markers_in_local_pointer_frame, _ = get_pcd_in_local_frame(
         pointer_markers_in_tracker_frame
     )
+    reference_ptr_pcd_in_local_pointer_frame, _ = get_pcd_in_local_frame(
+        reference_ptr_pcd
+    )
+    # rotate p_tip_local based on the transform between the pointer markers
+    # in local pointer frame (taken from the EM frame) and the reference
+    # pointer pointcloud
+    FT_ptr_orientation = pcd_to_pcd_reg_w_known_correspondence(reference_ptr_pcd_in_local_pointer_frame, pointer_markers_in_local_pointer_frame)
+    p_tip_oriented = FT_ptr_orientation.transform_pts(p_tip_in_reference_pointer_frame)
     FT_pointer_from_tracker = pcd_to_pcd_reg_w_known_correspondence(
         pointer_markers_in_local_pointer_frame,
         pointer_markers_in_tracker_frame,
     )
-    p_tip_in_em_frame = FT_pointer_from_tracker.transform_pts(p_tip_in_pointer_frame)
+    p_tip_in_em_frame = FT_pointer_from_tracker.transform_pts(p_tip_oriented)
     return p_tip_in_em_frame
 
 
 def compute_fiducials_in_em_frame(
+    reference_ptr_pcd: np.ndarray,
     em_fiducials_path: str,
     p_tip_in_pointer_frame: np.ndarray,
     coeffs: np.ndarray,
@@ -170,7 +179,7 @@ def compute_fiducials_in_em_frame(
             pointer_marker_pts, coeffs, degree, min, max
         )
         p_tip_in_em_frame = compute_p_tip_in_tracker_frame(
-            pointer_marker_pts_rectified, p_tip_in_pointer_frame
+            reference_ptr_pcd, pointer_marker_pts_rectified, p_tip_in_pointer_frame
         )
         # p_tip is in contact with the fiducial, therefore the
         # location of the fiducial in em coordinate frame is
@@ -181,7 +190,8 @@ def compute_fiducials_in_em_frame(
 
 def compute_p_tips_in_ct_frame(
     em_nav_frames: List[np.ndarray],
-    p_tip_in_pointer_frame: np.ndarray,
+    p_tip_in_reference_pointer_frame: np.ndarray,
+    reference_ptr_pcd: np.ndarray,
     FT_reg: FT,
     coeffs: np.ndarray,
     degree: int,
@@ -194,7 +204,7 @@ def compute_p_tips_in_ct_frame(
             pointer_marker_pts_em_frame, coeffs, degree, min, max
         )
         p_tip_em_frame = compute_p_tip_in_tracker_frame(
-            pointer_marker_pts_em_frame_rectified, p_tip_in_pointer_frame
+            reference_ptr_pcd, pointer_marker_pts_em_frame_rectified, p_tip_in_reference_pointer_frame
         )
         p_tip_ct_frame = FT_reg.transform_pts(p_tip_em_frame)
         p_tips_in_ct_frame.append(p_tip_ct_frame)
@@ -250,7 +260,7 @@ def main(dataset_prefix: str):
     """The main script for programming assignment #2. Specify the prefix
     of the data you wish to run for (e.g. pa1-debug-a-)."""
     validate_dataset_prefix(dataset_prefix)  # check if dataset prefix valid
-    calbody_path, calreadings_path, empivot_path, em_fiducials_path, ct_fiducials_path, em_nav_path, output2_path = get_data_paths()
+    calbody_path, calreadings_path, empivot_path, em_fiducials_path, ct_fiducials_path, em_nav_path, output2_path = get_data_paths(dataset_prefix)
 
     # high level approach starts here starts here 
     C_i_expected_frames = compute_C_i_expected(calbody_path, calreadings_path)
@@ -258,11 +268,11 @@ def main(dataset_prefix: str):
     coeffs, min, max = get_distortion_calibration_bernstein_polynomial_coeffs(
         calreadings_path, C_i_expected_frames, degree
     )
-    p_tip_in_pointer_frame = compute_p_tip_in_pointer_frame(
+    p_tip_in_reference_pointer_frame, reference_ptr_pcd = compute_p_tip_in_reference_pointer_frame(
         empivot_path, coeffs, degree, min, max
     )
     fiducials_em_frame = compute_fiducials_in_em_frame(
-        em_fiducials_path, p_tip_in_pointer_frame, coeffs, degree, min, max
+        reference_ptr_pcd, em_fiducials_path, p_tip_in_reference_pointer_frame, coeffs, degree, min, max
     )
     fiducials_ct_frame = parse_ct_fiducials(ct_fiducials_path)
     FT_reg = pcd_to_pcd_reg_w_known_correspondence(
@@ -270,7 +280,7 @@ def main(dataset_prefix: str):
     )
     em_nav_frames = parse_em_nav(em_nav_path)
     p_tips_in_ct_frame = compute_p_tips_in_ct_frame(
-        em_nav_frames, p_tip_in_pointer_frame, FT_reg, coeffs, degree, min, max
+        em_nav_frames, p_tip_in_reference_pointer_frame, reference_ptr_pcd, FT_reg, coeffs, degree, min, max
     )
     output_2_frames = parse_output_2(output2_path)
     # calculate the error between debug output frames and predicted output frames
@@ -282,13 +292,22 @@ def full_run():
     for prefix in dataset_prefixes:
         main(prefix)
 
+def full_run_debug():
+    """Runs the main function on every dataset in the DATA folder."""
+    for prefix in dataset_prefixes:
+        if 'debug' in prefix:
+            main(prefix)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--dataset_prefix", type=str)
     parser.add_argument("--full_run", default=False, action="store_true")
+    parser.add_argument("--full_run_debug", default=False, action="store_true")
     args = parser.parse_args()
-    if args.full_run:
+    if args.full_run_debug:
+        full_run_debug()
+    elif args.full_run:
         full_run()
     else:
         main(args.dataset_prefix)

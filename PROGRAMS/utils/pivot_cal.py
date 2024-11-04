@@ -74,7 +74,7 @@ def run_pivot_least_squares(FTs: List[FT]) -> np.ndarray:
     return x
 
 
-def pivot_calibration(pcd_frames: List[np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+def pivot_calibration(pcd_frames: List[np.ndarray]) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Performs a pivot calibration to determine p_tip in the pointer
     coordinate frame and p_dimple in the tracker coordinate frame.
 
@@ -83,13 +83,20 @@ def pivot_calibration(pcd_frames: List[np.ndarray]) -> Tuple[np.ndarray, np.ndar
             the tracker coordinate frame
 
     Returns:
-        (np.ndarray, np.ndarray): a tuple representing (p_tip, p_dimple) representing
-            the 3d location of the pointer tip in the local pointer coord frame and
-            the location of the calibration dimple in the tracker coord frame
+        p_tip (np.ndarray): the 3d location of the pointer tip in the local
+            pointer coordinate frame at the orientation of the pcd in the
+            first frame of the pcd_frames
+        p_dimple (np.ndarray): the 3d location of the pointer tip with
+            respect to the tracker coordinate frame. this represents p_dimple,
+            since the pointer tip is assumed to be touching p_dimple
+        first_frame_pcd (np.ndarray): it is important to return and record this
+            information, as you will need to find the transform between this
+            orientation and other pointer pcds in order to use the p_tip value
     """
     FTs = list()
     # get pointer markers in starting local coordinate frame
-    pcd_local, _ = get_pcd_in_local_frame(pcd_frames[0])
+    reference_pcd = pcd_frames[0]
+    pcd_local, _ = get_pcd_in_local_frame(reference_pcd)
     for pcd in pcd_frames:
         # compute FT to align pcd in pointer frame with pcd in tracker frame
         FT = pcd_to_pcd_reg_w_known_correspondence(pcd_local, pcd)
@@ -97,4 +104,4 @@ def pivot_calibration(pcd_frames: List[np.ndarray]) -> Tuple[np.ndarray, np.ndar
     x = run_pivot_least_squares(FTs)
     p_tip = x[:3].T  # tip of pointer in local pointer coord frame
     p_dimple = x[3:].T  # tip of pivot dimple in tracker coord frame
-    return p_tip, p_dimple
+    return p_tip, p_dimple, reference_pcd

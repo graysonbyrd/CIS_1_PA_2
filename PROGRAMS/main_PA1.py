@@ -75,7 +75,7 @@ def compute_p_dimple_in_em_coord_frame(empivot_file_path: str) -> np.ndarray:
     """
     empivot_cal_frames = parse_empivot(empivot_file_path)
     pcd_frames = [x["G"] for x in empivot_cal_frames]
-    p_tip, p_dimple = pivot_calibration(pcd_frames)
+    p_tip, p_dimple, _ = pivot_calibration(pcd_frames)
     return p_dimple
 
 
@@ -103,7 +103,7 @@ def compute_p_dimple_in_opt_coord_frame(
         H_vals = frame["H"]
         F_dD = pcd_to_pcd_reg_w_known_correspondence(D_vals, d_vals)
         H_in_em_pcd_frames.append(F_dD.transform_pts(H_vals))
-    p_tip, p_dimple = pivot_calibration(H_in_em_pcd_frames)
+    p_tip, p_dimple, _ = pivot_calibration(H_in_em_pcd_frames)
     return p_dimple
 
 

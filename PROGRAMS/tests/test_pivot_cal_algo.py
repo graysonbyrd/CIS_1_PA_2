@@ -58,7 +58,7 @@ def test_pivot_cal_w_pa_1_data():
         data_path = os.path.join(TEST_DIR, "..", "..", "DATA", f"{prefix}empivot.txt")
         cal_frames = parse_empivot(data_path)
         pcd_frames = [x["G"] for x in cal_frames]
-        t_G, P_dimple = pivot_calibration(pcd_frames)
+        t_G, P_dimple, _ = pivot_calibration(pcd_frames)
         FT_G_frames = list()
         # get pointer markers in local coordinate frame
         g_local, _ = get_pcd_in_local_frame(cal_frames[0]["G"])

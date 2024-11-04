@@ -17,13 +17,13 @@ from utils.interpolation import (
 )
 from PROGRAMS.main_PA2 import validate_dataset_prefix, compute_C_i_expected
 
-
-
 current_script_path = os.path.abspath(__file__)
 CUR_DIR = os.path.dirname(current_script_path)
 
-    
-def test_bernstein_interpolation():
+def test_bernstein_interpolation_1():
+    """Tests bernstein interpolation using all available data and
+    asserts that the MSE is below a small threshold between the
+    data points."""
     for dataset_prefix in dataset_prefixes:
         validate_dataset_prefix(dataset_prefix)  # check if dataset prefix valid
         dataset_folder = os.path.join(CUR_DIR, "..", "..", "DATA")
@@ -65,4 +65,4 @@ def test_bernstein_interpolation():
 
 
 if __name__ == "__main__":
-    test_bernstein_interpolation()
+    test_bernstein_interpolation_1()
