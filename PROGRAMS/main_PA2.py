@@ -28,18 +28,6 @@ from utils.transform import FT
 current_script_path = os.path.abspath(__file__)
 CUR_DIR = os.path.dirname(current_script_path)
 
-
-def get_N_c_and_N_frames_from_calreadings(
-    calreadings_file_path: str,
-) -> Tuple[int, int]:
-    """Helper function to retrieve the N_C and N_frames from a calreadings
-    dataset file."""
-    frames = parse_calreadings(calreadings_file_path)
-    N_frames = len(frames)
-    N_C = len(frames[0]["C"])
-    return N_C, N_frames
-
-
 # function for question 1
 def compute_C_i_expected(calbody_file_path: str, calreadings_file_path: str):
     """Takes in the calibration dataset prefix (e.g. "pa2-debug-c-").

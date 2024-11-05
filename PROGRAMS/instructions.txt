@@ -16,7 +16,7 @@ To run all tests, run the following command:
 pytest
 ```
 
-This should show all 7 tests are passing.
+This should show all 8 tests are passing.
 
 ## Full Run
 
